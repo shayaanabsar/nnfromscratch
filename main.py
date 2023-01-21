@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 from random import randint
 from math import e
-from time import sleep
 
 @dataclass
 class LayerSpecification:
@@ -70,8 +69,8 @@ class Network:
 	def calculate_loss(self, x, y) -> int:
 		# Calculate the means squared error for a given pair of data
 
-		predicted = sum(self.traverse([x]))
-		actual = sum([y])
+		predicted = sum(self.traverse(x))
+		actual = sum(y)
 
 		return (predicted - actual) ** 2
 
@@ -83,8 +82,8 @@ class Network:
 			cost += self.calculate_loss(x, y_data[i])
 		return cost
 
-	def derivative(self, x_data, y_data, h=0.000001, weight=None, bias=None) -> int:
-		# Calculate the partial derivative of a given weight or bias with respect to the cost
+	def gradient(self, x_data, y_data, h, weight=None, bias=None) -> int:
+		# Calculate the gradient
 
 		a = self.calculate_cost(x_data, y_data)
 		
@@ -104,6 +103,20 @@ class Network:
 
 		return (b - a) / h
 
+	def derivative(self, x_data, y_data, weight=None, bias=None) -> int:
+		# Calculate the limit of the gradient as h -> 0
+		current, previous = None, None
+		h = 0.1
+
+		while True:
+			previous, current = current, self.gradient(x_data, y_data, h=h, weight=weight, bias=bias)
+
+			if None not in (previous, current):
+				if round(previous, 5) == round(current, 5):
+					return current
+			
+			h /= 10
+
 	def train(self, x_data, y_data, epochs, learning_rate=0.01):
 		for _ in range(epochs):
 			for x, layer in reversed(list(enumerate(self.weights[::-1]))):
@@ -112,8 +125,8 @@ class Network:
 						negative_derivative = -self.derivative(x_data, y_data, weight=(x, y, z))
 						self.weights[x][y][z] += (learning_rate * negative_derivative)
 			
-#nn = Network()
-#nn.setup([LayerSpecification(1, None), LayerSpecification(1, 'relu')])
-#nn.train([2, 5], [10, 25], 10)
-#print(nn)
-#print(nn.traverse([9]))
+nn = Network()
+nn.setup([LayerSpecification(1, None), LayerSpecification(1, 'relu')])
+nn.train([[5]], [[3.14159]], 10)
+print(nn)
+print(nn.traverse([5]))
