@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from random import randint
 from math import e
+from time import sleep
 
 @dataclass
 class LayerSpecification:
@@ -11,7 +12,7 @@ class LayerSpecification:
 class Node:
 	activation: str
 	value: float = 0.0
-	bias: int = randint(0, 5)
+	bias: int = 0
 
 	def apply_activation(self):
 		match self.activation:
@@ -61,8 +62,8 @@ class Network:
 		return [node.value for node in self.layers[-1]]
 
 	def calculate_loss(self, x, y) -> int:
-		predicted = sum(self.traverse(x))
-		actual = sum(y)
+		predicted = sum(self.traverse([x]))
+		actual = sum([y])
 
 		return (predicted - actual) ** 2
 
@@ -72,23 +73,35 @@ class Network:
 			cost += self.calculate_loss(x, y_data[i])
 		return cost
 
-	def derivative(x_data, y_data, self, h=0.00001, weight=None, bias=None) -> int:
+	def derivative(self, x_data, y_data, h=0.000001, weight=None, bias=None) -> int:
 		a = self.calculate_cost(x_data, y_data)
-
-		layer, node_number, connection = weight
-		self.weights[layer][node_number][connection] += h
+		
+		if bias is None:
+			layer, node_number, connection = weight
+			self.weights[layer][node_number][connection] += h
+		else:
+			layer, node_number = bias
+			self.layers[layer][node_number].bias += h
 
 		b = self.calculate_cost(x_data, y_data)
 
-		self.weights[layer][node_number][connection] -= h
+		if bias is None:
+			self.weights[layer][node_number][connection] -= h
+		else:
+			self.layers[layer][node_number].bias -= h
 
-		return (a + b) / h
+		return (b - a) / h
 
-	def train(x_data, y_data, epochs, learning_rate=0.0001):
-		pass
-
-
-nn = Network()
-nn.setup([LayerSpecification(3, None), 
-		LayerSpecification(2, 'sigmoid'), 
-		LayerSpecification(1, 'relu')])
+	def train(self, x_data, y_data, epochs, learning_rate=0.01):
+		for _ in range(epochs):
+			for x, layer in reversed(list(enumerate(self.weights[::-1]))):
+				for y, node in enumerate(layer):
+					for z, connection in enumerate(node):
+						negative_derivative = -self.derivative(x_data, y_data, weight=(x, y, z))
+						self.weights[x][y][z] += (learning_rate * negative_derivative)
+			
+#nn = Network()
+#nn.setup([LayerSpecification(1, None), LayerSpecification(1, 'relu')])
+#nn.train([2, 5], [10, 25], 10)
+#print(nn)
+#print(nn.traverse([9]))
