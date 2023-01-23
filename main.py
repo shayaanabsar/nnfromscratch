@@ -1,17 +1,17 @@
 from dataclasses import dataclass, field
-from random import randint
+from random import randint, random
 from math import e
 
 @dataclass
 class LayerSpecification:
 	num_nodes: int
-	activation: str
+	activation: str = None
 
 @dataclass
 class Node:
 	activation: str
 	value: float = 0.0
-	bias: int = 0
+	bias: float = randint(1, 5)
 
 	def apply_activation(self):
 		match self.activation:
@@ -35,7 +35,7 @@ class Network:
 			if i != final_spec:
 				self.weights.append([])
 				for _ in range(spec.num_nodes):
-					self.weights[-1].append([randint(0, 5) for _ in range(specifications[i+1].num_nodes)])
+					self.weights[-1].append([randint(1,5) for _ in range(specifications[i+1].num_nodes)])
 
 	def reset_network(self):
 		# Reset the node values
@@ -82,18 +82,17 @@ class Network:
 			cost += self.calculate_loss(x, y_data[i])
 		return cost
 
-	def gradient(self, x_data, y_data, h, weight=None, bias=None) -> int:
-		# Calculate the gradient
+	def derivative(self, x_data, y_data, h=0.00001, weight=None, bias=None) -> int:
+		# Calculate the derivative
 
 		a = self.calculate_cost(x_data, y_data)
-		
+
 		if bias is None:
 			layer, node_number, connection = weight
 			self.weights[layer][node_number][connection] += h
 		else:
 			layer, node_number = bias
 			self.layers[layer][node_number].bias += h
-
 		b = self.calculate_cost(x_data, y_data)
 
 		if bias is None:
@@ -103,30 +102,35 @@ class Network:
 
 		return (b - a) / h
 
-	def derivative(self, x_data, y_data, weight=None, bias=None) -> int:
-		# Calculate the limit of the gradient as h -> 0
-		current, previous = None, None
-		h = 0.1
-
-		while True:
-			previous, current = current, self.gradient(x_data, y_data, h=h, weight=weight, bias=bias)
-
-			if None not in (previous, current):
-				if round(previous, 5) == round(current, 5):
-					return current
-			
-			h /= 10
-
-	def train(self, x_data, y_data, epochs, learning_rate=0.01):
+	def train(self, x_data, y_data, epochs, weight_learning_rate=0.001, bias_learning_rate=0.05):
 		for _ in range(epochs):
+			weight_derivatives, bias_derivatives = {}, {}
+			
 			for x, layer in reversed(list(enumerate(self.weights[::-1]))):
 				for y, node in enumerate(layer):
+					bias_derivatives[(x+1, y)] = -self.derivative(x_data, y_data, bias=(x+1, y))
 					for z, connection in enumerate(node):
-						negative_derivative = -self.derivative(x_data, y_data, weight=(x, y, z))
-						self.weights[x][y][z] += (learning_rate * negative_derivative)
-			
-nn = Network()
-nn.setup([LayerSpecification(1, None), LayerSpecification(1, 'relu')])
-nn.train([[5]], [[3.14159]], 10)
-print(nn)
-print(nn.traverse([5]))
+						weight_derivatives[(x, y, z)] = -self.derivative(x_data, y_data, weight=(x, y, z))
+
+			for weight in weight_derivatives:
+				x, y, z = weight
+				self.weights[x][y][z] += (weight_learning_rate * weight_derivatives[(x, y, z)])
+
+			for node in bias_derivatives:
+				x, y = node
+				self.layers[x][y].bias += (bias_learning_rate * bias_derivatives[(x, y)])
+
+test_network = Network()
+
+test_network.setup([
+	LayerSpecification(1),
+	LayerSpecification(1, 'relu')
+])
+
+gradient, y_intercept = randint(1, 10), randint(1, 10)
+print(f'f(x) = {gradient}x + {y_intercept}')
+
+x_train, y_train = [[i] for i in range(10)], [[i*gradient+y_intercept] for i in range(10)]
+test_network.train(x_data=x_train, y_data=y_train, epochs=50)
+
+print(f'n(x)= {test_network.weights[0][0][0]:.4f}x + {test_network.layers[1][0].bias:.4f}')
