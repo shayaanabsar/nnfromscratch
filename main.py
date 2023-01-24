@@ -2,6 +2,9 @@ from dataclasses import dataclass, field
 from random import randint, random
 from math import e
 
+def reverse_enumerate(l):
+	return list(enumerate(l))[::-1]
+
 @dataclass
 class LayerSpecification:
 	num_nodes: int
@@ -106,7 +109,7 @@ class Network:
 		for _ in range(epochs):
 			weight_derivatives, bias_derivatives = {}, {}
 			
-			for x, layer in reversed(list(enumerate(self.weights[::-1]))):
+			for x, layer in reverse_enumerate(self.weights):
 				for y, node in enumerate(layer):
 					bias_derivatives[(x+1, y)] = -self.derivative(x_data, y_data, bias=(x+1, y))
 					for z, connection in enumerate(node):
@@ -133,4 +136,4 @@ print(f'f(x) = {gradient}x + {y_intercept}')
 x_train, y_train = [[i] for i in range(10)], [[i*gradient+y_intercept] for i in range(10)]
 test_network.train(x_data=x_train, y_data=y_train, epochs=50)
 
-print(f'n(x)= {test_network.weights[0][0][0]:.4f}x + {test_network.layers[1][0].bias:.4f}')
+print(f'n(x) = {test_network.weights[0][0][0]:.4f}x + {test_network.layers[1][0].bias:.4f}')
