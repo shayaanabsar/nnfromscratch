@@ -85,7 +85,7 @@ class Network:
 			cost += self.calculate_loss(x, y_data[i])
 		return cost
 
-	def derivative(self, x_data, y_data, h=0.00001, weight=None, bias=None) -> int:
+	def gradient(self, x_data, y_data, h=0.00001, weight=None, bias=None) -> int:
 		# Calculate the derivative
 
 		a = self.calculate_cost(x_data, y_data)
@@ -104,6 +104,15 @@ class Network:
 			self.layers[layer][node_number].bias -= h
 
 		return (b - a) / h
+
+	def derivative(self, x_data, y_data, weight=None, bias=None):
+		h, previous, current = 1, None, None
+
+		while True:
+			h, previous, current = h/10, current, self.gradient(x_data, y_data, weight=weight, bias=bias, h=h)
+
+			if ((None not in (previous, current)) and (round(previous, 2) == round(current, 2))) or (h <= 10e-10):
+				return current
 
 	def train(self, x_data, y_data, epochs, weight_learning_rate=0.001, bias_learning_rate=0.05):
 		for _ in range(epochs):
