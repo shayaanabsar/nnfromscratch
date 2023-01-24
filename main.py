@@ -6,7 +6,7 @@ def reverse_enumerate(l):
 	return list(enumerate(l))[::-1]
 
 @dataclass
-class LayerSpecification:
+class Layer:
 	num_nodes: int
 	activation: str = None
 
@@ -135,14 +135,14 @@ class Network:
 test_network = Network()
 
 test_network.setup([
-	LayerSpecification(1),
-	LayerSpecification(1, 'relu')
+	Layer(1),
+	Layer(1, 'relu')
 ])
 
 gradient, y_intercept = randint(1, 10), randint(1, 10)
 print(f'f(x) = {gradient}x + {y_intercept}')
 
 x_train, y_train = [[i] for i in range(10)], [[i*gradient+y_intercept] for i in range(10)]
-test_network.train(x_data=x_train, y_data=y_train, epochs=50)
+test_network.train(x_data=x_train, y_data=y_train, epochs=100)
 
 print(f'n(x) = {test_network.weights[0][0][0]:.4f}x + {test_network.layers[1][0].bias:.4f}')
