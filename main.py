@@ -72,10 +72,13 @@ class Network:
 	def calculate_loss(self, x, y) -> int:
 		# Calculate the means squared error for a given pair of data
 
-		predicted = sum(self.traverse(x))
-		actual = sum(y)
+		predicted, actual = self.traverse(x), y
+		loss = 0
 
-		return (predicted - actual) ** 2
+		for i, val in enumerate(predicted):
+			loss += (val - actual[i]) ** 2
+
+		return loss
 
 	def calculate_cost(self, x_data, y_data) -> int:
 		# Calculate the sum of mse for all training data
