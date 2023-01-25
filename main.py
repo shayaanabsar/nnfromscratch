@@ -84,9 +84,10 @@ class Network:
 		# Calculate the sum of mse for all training data
 
 		cost = 0
+		
 		for i, x in enumerate(x_data):
 			cost += self.calculate_loss(x, y_data[i])
-		return cost
+		return cost / len(x_data)
 
 	def gradient(self, x_data, y_data, h=0.00001, weight=None, bias=None) -> int:
 		# Calculate the derivative
@@ -117,7 +118,7 @@ class Network:
 			if ((None not in (previous, current)) and (round(previous, 2) == round(current, 2))) or (h <= 10e-10):
 				return current
 
-	def train(self, x_data, y_data, epochs, weight_learning_rate=0.001, bias_learning_rate=0.05):
+	def train(self, x_data, y_data, epochs, weight_learning_rate=0.02, bias_learning_rate=0.02):
 		for _ in range(epochs):
 			weight_derivatives, bias_derivatives = {}, {}
 			
@@ -146,6 +147,6 @@ gradient, y_intercept = randint(1, 10), randint(1, 10)
 print(f'f(x) = {gradient}x + {y_intercept}')
 
 x_train, y_train = [[i] for i in range(10)], [[i*gradient+y_intercept] for i in range(10)]
-test_network.train(x_data=x_train, y_data=y_train, epochs=100)
+test_network.train(x_data=x_train, y_data=y_train, epochs=400)
 
 print(f'n(x) = {test_network.weights[0][0][0]:.4f}x + {test_network.layers[1][0].bias:.4f}')
