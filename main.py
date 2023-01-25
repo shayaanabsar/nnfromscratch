@@ -125,7 +125,7 @@ class Network:
 
 	def train(self):
 		if None in (self.x_data, self.y_data, self.epochs):
-			raise Exception('x_data, y_data and epochs mus tbe provided to train.')
+			raise Exception('x_data, y_data and epochs must be provided to train.')
 
 		for _ in range(self.epochs):
 			weight_derivatives, bias_derivatives = {}, {}
