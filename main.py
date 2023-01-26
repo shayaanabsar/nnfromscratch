@@ -85,19 +85,19 @@ class Network:
 
 		return loss
 
-	def calculate_cost(self, x_data, y_data) -> int:
+	def calculate_cost(self) -> int:
 		# Calculate the sum of mse for all training data
 
 		cost = 0
 		
-		for i, x in enumerate(x_data):
-			cost += self.calculate_loss(x, y_data[i])
-		return cost / len(x_data)
+		for i, x in enumerate(self.x_data):
+			cost += self.calculate_loss(x, self.y_data[i])
+		return cost / len(self.x_data)
 
 	def gradient(self, h, weight=None, bias=None) -> int:
 		# Calculate the derivative
 
-		a = self.calculate_cost(self.x_data, self.y_data)
+		a = self.calculate_cost()
 
 		if bias is None:
 			layer, node_number, connection = weight
@@ -105,7 +105,7 @@ class Network:
 		else:
 			layer, node_number = bias
 			self.layers[layer][node_number].bias += h
-		b = self.calculate_cost(self.x_data, self.y_data)
+		b = self.calculate_cost()
 
 		if bias is None:
 			self.weights[layer][node_number][connection] -= h
